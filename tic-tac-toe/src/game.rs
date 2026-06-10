@@ -1,6 +1,10 @@
 use std::io::stdin;
 
-use crate::board::Board;
+use crate::{board::Board, model::cell::Cell};
+
+const PLAYER_CELL_TYPE: Cell = Cell::X;
+
+#[derive(PartialEq)]
 pub enum Winner {
     Player,
     Computer,
@@ -35,8 +39,15 @@ impl Game {
                 }
             };
             //User turn
-            self.board.set(row, col, Cell::X);
+            self.board.set(row, col, PLAYER_CELL_TYPE);
+
+            if self.has_winner() == Some(Winner::Player) {
+                println!("Du hast gewonnen!");
+                break;
+            }
         }
+
+        self.board.render();
     }
 
     fn ask_user_for_turn(&self) -> Result<(usize, usize), GameError> {
@@ -66,5 +77,37 @@ impl Game {
                 "Numbers have to be in the field!",
             ))
         }
+    }
+
+    fn has_winner(&self) -> Option<Winner> {
+        let lines = [
+            //3 Rows
+            [(0, 0), (0, 1), (0, 2)],
+            [(1, 0), (1, 1), (1, 2)],
+            [(2, 0), (2, 1), (2, 2)],
+            //3 Column
+            [(0, 0), (1, 0), (2, 0)],
+            [(0, 1), (1, 1), (2, 1)],
+            [(0, 2), (1, 2), (2, 2)],
+            //2 Diagonal
+            [(0, 0), (1, 1), (2, 2)],
+            [(0, 2), (1, 1), (2, 0)],
+        ];
+
+        for [p1, p2, p3] in lines {
+            let a = self.board.get(p1.0, p1.1);
+            let b = self.board.get(p2.0, p2.1);
+            let c = self.board.get(p3.0, p3.1);
+
+            if a != Cell::Empty && a == b && b == c {
+                return match a {
+                    PLAYER_CELL_TYPE => Some(Winner::Player),
+                    Cell::O => Some(Winner::Computer),
+                    _ => None,
+                };
+            }
+        }
+
+        None
     }
 }
