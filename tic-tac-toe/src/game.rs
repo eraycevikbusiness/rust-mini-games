@@ -3,6 +3,7 @@ use std::io::stdin;
 use crate::{board::Board, model::cell::Cell};
 
 const PLAYER_CELL_TYPE: Cell = Cell::X;
+const COMPUTER_CELL_TYPE: Cell = Cell::O;
 
 #[derive(PartialEq)]
 pub enum Winner {
@@ -42,7 +43,15 @@ impl Game {
             self.board.set(row, col, PLAYER_CELL_TYPE);
 
             if self.has_winner() == Some(Winner::Player) {
-                println!("Du hast gewonnen!");
+                println!("You won!!");
+                break;
+            }
+
+            let (row, col) = self.ask_computer_for_turn();
+            self.board.set(row, col, COMPUTER_CELL_TYPE);
+
+            if self.has_winner() == Some(Winner::Computer) {
+                println!("You loose! The computer is better!");
                 break;
             }
         }
@@ -78,6 +87,8 @@ impl Game {
             ))
         }
     }
+
+    fn ask_computer_for_turn(&self) -> (usize, usize) {}
 
     fn has_winner(&self) -> Option<Winner> {
         let lines = [
