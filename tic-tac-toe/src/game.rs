@@ -1,5 +1,7 @@
 use std::io::stdin;
 
+use rand::RngExt;
+
 use crate::{board::Board, model::cell::Cell};
 
 const PLAYER_CELL_TYPE: Cell = Cell::X;
@@ -15,6 +17,7 @@ pub struct Game {
     board: Board,
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 enum GameError {
     InvalidUserInput(&'static str),
@@ -39,7 +42,11 @@ impl Game {
                     continue;
                 }
             };
-            //User turn
+
+            if !self.board.is_empty_on(row, col) {
+                println!("You can only play your turn on fields that are empty!");
+                continue;
+            }
             self.board.set(row, col, PLAYER_CELL_TYPE);
 
             if self.has_winner() == Some(Winner::Player) {
@@ -88,7 +95,12 @@ impl Game {
         }
     }
 
-    fn ask_computer_for_turn(&self) -> (usize, usize) {}
+    fn ask_computer_for_turn(&self) -> (usize, usize) {
+        let empty: Vec<(usize, usize)> = self.board.get_empty_cells();
+        let rnd_cell_loc = empty[rand::rng().random_range(0..empty.len())];
+
+        rnd_cell_loc
+    }
 
     fn has_winner(&self) -> Option<Winner> {
         let lines = [

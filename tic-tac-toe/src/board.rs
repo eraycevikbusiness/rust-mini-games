@@ -16,15 +16,17 @@ impl Default for Board {
 
 impl Board {
     pub fn render(&self) {
-        for row in self.cells.iter() {
-            for (j, column) in row.iter().enumerate() {
-                print!("{:?}", column);
+        for (i, row) in self.cells.iter().enumerate() {
+            for (j, cell) in row.iter().enumerate() {
+                print!(" {} ", cell.symbol());
                 if j < 2 {
-                    print!(" | ");
+                    print!("|");
                 }
             }
             println!();
-            println!("{RENDER_LINE}");
+            if i < 2 {
+                println!("---+---+---");
+            }
         }
     }
 
@@ -47,5 +49,9 @@ impl Board {
 
     pub fn set(&mut self, row: usize, column: usize, to: Cell) {
         self.cells[row][column] = to;
+    }
+
+    pub fn is_empty_on(&self, row: usize, column: usize) -> bool {
+        self.cells[row][column] == Cell::Empty
     }
 }
