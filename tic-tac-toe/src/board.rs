@@ -1,7 +1,5 @@
 use crate::model::cell::Cell;
 
-const RENDER_LINE: &str = "---+------+------+---";
-
 pub struct Board {
     cells: [[Cell; 3]; 3],
 }
