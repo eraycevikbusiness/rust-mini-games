@@ -47,6 +47,10 @@ impl Board {
         v
     }
 
+    pub fn has_empty_cells(&self) -> bool {
+        self.cells.iter().flatten().any(|c| *c == Cell::Empty)
+    }
+
     pub fn set(&mut self, row: usize, column: usize, to: Cell) {
         self.cells[row][column] = to;
     }

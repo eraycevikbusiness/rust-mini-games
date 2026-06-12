@@ -34,6 +34,12 @@ impl Default for Game {
 impl Game {
     pub fn run(&mut self) {
         loop {
+            //Check Draw
+            if !self.board.has_empty_cells() {
+                println!("Draw! No one has won!");
+                break;
+            }
+
             self.board.render();
             let (row, col) = match self.ask_user_for_turn() {
                 Ok((row, col)) => (row, col),
@@ -51,6 +57,12 @@ impl Game {
 
             if self.has_winner() == Some(Winner::Player) {
                 println!("You won!!");
+                break;
+            }
+
+            //Check Draw
+            if !self.board.has_empty_cells() {
+                println!("Draw! No one has won!");
                 break;
             }
 
