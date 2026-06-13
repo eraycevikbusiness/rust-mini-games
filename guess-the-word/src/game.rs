@@ -7,9 +7,13 @@ use crate::word::Word;
 const CSV_PATH: &str = "words.csv";
 const MAX_FAILUES: u8 = 6;
 
+enum GameError {
+    InvalidInput(&'static str),
+}
+
 pub struct Game {
     data: Vec<String>,
-    rnd_word: String,
+    word: Word,
     failures: u8,
     failures_words: Vec<char>,
 }
@@ -24,42 +28,51 @@ impl Game {
                 .collect()
         }
 
+        fn get_rnd_word(from: &Vec<String>) -> String {
+            from[rng().random_range(0..from.len())]
+                .to_ascii_lowercase()
+                .clone()
+        }
+
+        let data = load_data_from_csv();
+
         Self {
-            data: load_data_from_csv(),
-            rnd_word: String::new(),
+            word: Word::new(get_rnd_word(&data).as_str()),
+            data: data,
             failures: 0,
             failures_words: vec![],
         }
     }
 
-    fn get_rnd_word(&self) -> String {
-        self.data[rng().random_range(0..self.data.len())]
-            .to_ascii_lowercase()
-            .clone()
-    }
-
     pub fn run(&mut self) {
-        self.rnd_word = self.get_rnd_word();
-        let mut word = Word::new(&self.rnd_word);
         loop {
             print!("\x1B[2J\x1B[1;1H");
-            word.render();
+            self.word.render();
 
-            let c = self.ask_for_char();
+            let c = match self.ask_for_char() {
+                Ok(v) => v,
+                Err(GameError::InvalidInput(msg)) => {
+                    println!("{msg}");
+                    println!("Press enter to continue...");
+                    let mut t_buffer = String::new();
+                    stdin().read_line(&mut t_buffer).ok();
+                    continue;
+                }
+            };
 
-            if word.contains(c) {
-                word.fill_empty_fields_with(c);
+            if self.word.contains(c) {
+                self.word.fill_empty_fields_with(c);
             } else {
                 self.failures += 1;
                 self.failures_words.push(c);
             }
 
             if self.is_game_over() {
-                println!("You lost the game! The word was '{}'", self.rnd_word);
+                println!("You lost the game! The word was '{}'", self.word.origin);
                 break;
             }
 
-            if word.is_complete() {
+            if self.word.is_complete() {
                 println!("You won!");
                 break;
             }
@@ -68,14 +81,20 @@ impl Game {
         self.display_failures();
     }
 
-    fn ask_for_char(&self) -> char {
+    fn ask_for_char(&self) -> Result<char, GameError> {
         let mut i_buffer: String = String::new();
         self.display_failures();
         println!("Please enter a character: ");
-        stdin().read_line(&mut i_buffer);
-        let as_c: char = i_buffer.trim().parse().unwrap();
+        stdin().read_line(&mut i_buffer).ok();
+        let as_c: char = i_buffer
+            .trim()
+            .parse()
+            .map_err(|_| GameError::InvalidInput("Only letters!"))?;
 
-        as_c.to_ascii_lowercase()
+        if as_c.is_ascii_digit() {
+            return Err(GameError::InvalidInput("Only letters!"));
+        }
+        Ok(as_c.to_ascii_lowercase())
     }
 
     fn is_game_over(&self) -> bool {

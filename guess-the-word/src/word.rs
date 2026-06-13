@@ -1,11 +1,10 @@
 pub struct Word {
-    origin: String,
+    pub origin: String,
     curr_input: Vec<Option<char>>,
 }
 
 impl Word {
     pub fn new(value: &str) -> Self {
-        let vec: Vec<Option<char>> = Vec::new();
         Self {
             origin: value.to_owned(),
             curr_input: vec![None; value.chars().count()],
