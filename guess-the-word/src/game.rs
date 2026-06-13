@@ -11,6 +11,7 @@ pub struct Game {
     data: Vec<String>,
     rnd_word: String,
     failures: u8,
+    failures_words: Vec<char>,
 }
 
 impl Game {
@@ -27,17 +28,21 @@ impl Game {
             data: load_data_from_csv(),
             rnd_word: String::new(),
             failures: 0,
+            failures_words: vec![],
         }
     }
 
     fn get_rnd_word(&self) -> String {
-        self.data[rng().random_range(0..self.data.len())].clone()
+        self.data[rng().random_range(0..self.data.len())]
+            .to_ascii_lowercase()
+            .clone()
     }
 
     pub fn run(&mut self) {
         self.rnd_word = self.get_rnd_word();
-        let word = Word::new(&self.rnd_word);
+        let mut word = Word::new(&self.rnd_word);
         loop {
+            print!("\x1B[2J\x1B[1;1H");
             word.render();
 
             let c = self.ask_for_char();
@@ -46,10 +51,16 @@ impl Game {
                 word.fill_empty_fields_with(c);
             } else {
                 self.failures += 1;
+                self.failures_words.push(c);
             }
 
             if self.is_game_over() {
-                println!("You lost the game!");
+                println!("You lost the game! The word was '{}'", self.rnd_word);
+                break;
+            }
+
+            if word.is_complete() {
+                println!("You won!");
                 break;
             }
         }
@@ -64,7 +75,7 @@ impl Game {
         stdin().read_line(&mut i_buffer);
         let as_c: char = i_buffer.trim().parse().unwrap();
 
-        as_c
+        as_c.to_ascii_lowercase()
     }
 
     fn is_game_over(&self) -> bool {
@@ -72,6 +83,9 @@ impl Game {
     }
 
     fn display_failures(&self) {
-        println!("[FAILURES: {} / {}]", self.failures, MAX_FAILUES);
+        println!(
+            "[FAILURES: {} / {} | {:?}]",
+            self.failures, MAX_FAILUES, self.failures_words
+        );
     }
 }

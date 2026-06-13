@@ -16,7 +16,13 @@ impl Word {
         self.origin.contains(c)
     }
 
-    pub fn fill_empty_fields_with(&self, c: char) {}
+    pub fn fill_empty_fields_with(&mut self, c: char) {
+        for (i, curr_c) in self.origin.chars().enumerate() {
+            if curr_c == c {
+                self.curr_input[i] = Some(c);
+            }
+        }
+    }
 
     pub fn render(&self) {
         for c in self.curr_input.iter() {
@@ -30,5 +36,9 @@ impl Word {
             }
         }
         println!();
+    }
+
+    pub fn is_complete(&self) -> bool {
+        !self.curr_input.contains(&None)
     }
 }
